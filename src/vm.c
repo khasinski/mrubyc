@@ -37,6 +37,10 @@
 //! for getting the VM ID
 static uint16_t free_vm_bitmap[MAX_VM_COUNT / 16 + 1];
 
+//! pre-allocated callinfo pool to avoid malloc/free per method call
+static mrbc_callinfo callinfo_pool[MRBC_CALLINFO_POOL_SIZE];
+static mrbc_callinfo *callinfo_freelist;
+
 
 /***** Global variables *****************************************************/
 /***** Signal catching functions ********************************************/
@@ -196,6 +200,13 @@ static const mrbc_irep_catch_handler *find_catch_handler_ensure( const mrbc_vm *
 void mrbc_cleanup_vm(void)
 {
   memset(free_vm_bitmap, 0, sizeof(free_vm_bitmap));
+
+  // Initialize callinfo free list
+  callinfo_freelist = &callinfo_pool[0];
+  for( int i = 0; i < MRBC_CALLINFO_POOL_SIZE - 1; i++ ) {
+    callinfo_pool[i].prev = &callinfo_pool[i + 1];
+  }
+  callinfo_pool[MRBC_CALLINFO_POOL_SIZE - 1].prev = NULL;
 }
 
 
@@ -204,7 +215,13 @@ void mrbc_cleanup_vm(void)
 */
 mrbc_callinfo * mrbc_push_callinfo( mrbc_vm *vm, mrbc_sym method_id, int reg_offset, int n_args )
 {
-  mrbc_callinfo *callinfo = mrbc_alloc(vm, sizeof(mrbc_callinfo));
+  mrbc_callinfo *callinfo;
+  if( callinfo_freelist ) {
+    callinfo = callinfo_freelist;
+    callinfo_freelist = callinfo_freelist->prev;
+  } else {
+    callinfo = mrbc_alloc(vm, sizeof(mrbc_callinfo));
+  }
 
   *callinfo = (mrbc_callinfo){
 #if defined(MRBC_DEBUG)
@@ -256,7 +273,13 @@ void mrbc_pop_callinfo( mrbc_vm *vm )
   vm->target_class = callinfo->target_class;
   vm->callinfo_tail = callinfo->prev;
 
-  mrbc_free(vm, callinfo);
+  // Return to pool if it belongs to the pool, otherwise free
+  if( callinfo >= &callinfo_pool[0] && callinfo < &callinfo_pool[MRBC_CALLINFO_POOL_SIZE] ) {
+    callinfo->prev = callinfo_freelist;
+    callinfo_freelist = callinfo;
+  } else {
+    mrbc_free(vm, callinfo);
+  }
 }
 
 

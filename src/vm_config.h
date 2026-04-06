@@ -28,6 +28,11 @@
 #define MAX_SYMBOLS_COUNT 255
 #endif
 
+// callinfo pool size (pre-allocated to avoid malloc/free per method call)
+#if !defined(MRBC_CALLINFO_POOL_SIZE)
+#define MRBC_CALLINFO_POOL_SIZE 32
+#endif
+
 
 // memory management
 //  MRBC_ALLOC_16BIT or MRBC_ALLOC_24BIT
