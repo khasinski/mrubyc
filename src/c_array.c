@@ -245,7 +245,15 @@ int mrbc_array_push(mrbc_value *ary, mrbc_value *set_val)
   mrbc_array *h = ary->array;
 
   if( h->n_stored >= h->data_size ) {
-    mrbc_array_resize(ary, h->data_size + 6);
+    int new_size;
+    if( h->data_size < 8 ) {
+      new_size = 8;
+    } else {
+      int grow = h->data_size / 2;
+      if( grow > 256 ) grow = 256;
+      new_size = h->data_size + grow;
+    }
+    mrbc_array_resize(ary, new_size);
   }
 
   h->data[h->n_stored++] = *set_val;
