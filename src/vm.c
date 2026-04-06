@@ -2296,6 +2296,13 @@ static inline void op_eq( mrbc_vm *vm, mrbc_value *regs EXT )
 {
   FETCH_B();
 
+  // fast-path: Integer == Integer
+  if( mrbc_type(regs[a  ]) == MRBC_TT_INTEGER &&
+      mrbc_type(regs[a+1]) == MRBC_TT_INTEGER ) {
+    mrbc_set_bool( &regs[a], regs[a].i == regs[a+1].i );
+    return;
+  }
+
   if( mrbc_type(regs[a]) == MRBC_TT_OBJECT ) {
     send_by_name(vm, MRBC_SYM(EQ_EQ), a, 1);
     return;
@@ -2316,6 +2323,13 @@ static inline void op_eq( mrbc_vm *vm, mrbc_value *regs EXT )
 static inline void op_lt( mrbc_vm *vm, mrbc_value *regs EXT )
 {
   FETCH_B();
+
+  // fast-path: Integer < Integer
+  if( mrbc_type(regs[a  ]) == MRBC_TT_INTEGER &&
+      mrbc_type(regs[a+1]) == MRBC_TT_INTEGER ) {
+    mrbc_set_bool( &regs[a], regs[a].i < regs[a+1].i );
+    return;
+  }
 
   if( mrbc_type(regs[a]) == MRBC_TT_OBJECT ) {
     send_by_name(vm, MRBC_SYM(LT), a, 1);
@@ -2338,6 +2352,13 @@ static inline void op_le( mrbc_vm *vm, mrbc_value *regs EXT )
 {
   FETCH_B();
 
+  // fast-path: Integer <= Integer
+  if( mrbc_type(regs[a  ]) == MRBC_TT_INTEGER &&
+      mrbc_type(regs[a+1]) == MRBC_TT_INTEGER ) {
+    mrbc_set_bool( &regs[a], regs[a].i <= regs[a+1].i );
+    return;
+  }
+
   if( mrbc_type(regs[a]) == MRBC_TT_OBJECT ) {
     send_by_name(vm, MRBC_SYM(LT_EQ), a, 1);
     return;
@@ -2359,6 +2380,13 @@ static inline void op_gt( mrbc_vm *vm, mrbc_value *regs EXT )
 {
   FETCH_B();
 
+  // fast-path: Integer > Integer
+  if( mrbc_type(regs[a  ]) == MRBC_TT_INTEGER &&
+      mrbc_type(regs[a+1]) == MRBC_TT_INTEGER ) {
+    mrbc_set_bool( &regs[a], regs[a].i > regs[a+1].i );
+    return;
+  }
+
   if( mrbc_type(regs[a]) == MRBC_TT_OBJECT ) {
     send_by_name(vm, MRBC_SYM(GT), a, 1);
     return;
@@ -2379,6 +2407,13 @@ static inline void op_gt( mrbc_vm *vm, mrbc_value *regs EXT )
 static inline void op_ge( mrbc_vm *vm, mrbc_value *regs EXT )
 {
   FETCH_B();
+
+  // fast-path: Integer >= Integer
+  if( mrbc_type(regs[a  ]) == MRBC_TT_INTEGER &&
+      mrbc_type(regs[a+1]) == MRBC_TT_INTEGER ) {
+    mrbc_set_bool( &regs[a], regs[a].i >= regs[a+1].i );
+    return;
+  }
 
   if( mrbc_type(regs[a]) == MRBC_TT_OBJECT ) {
     send_by_name(vm, MRBC_SYM(GT_EQ), a, 1);
