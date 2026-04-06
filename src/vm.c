@@ -242,7 +242,12 @@ void mrbc_pop_callinfo( mrbc_vm *vm )
   mrbc_value *r0 = vm->cur_regs;
 
   for( int i = 1; i < vm->cur_irep->nregs; i++ ) {
-    mrbc_decref_empty( r0+i );
+    mrbc_vtype tt = mrbc_type(r0[i]);
+    if( tt == MRBC_TT_EMPTY ) continue;         // already empty, skip entirely
+    if( tt > MRBC_TT_INC_DEC_THRESHOLD ) {       // ref-counted object
+      mrbc_decref( &r0[i] );
+    }
+    mrbc_set_tt( &r0[i], MRBC_TT_EMPTY );
   }
 
   if( callinfo->karg_keep ) {
